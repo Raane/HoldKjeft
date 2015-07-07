@@ -1,0 +1,23 @@
+[
+  {
+    "type": "MainLayer",
+    "displayName": "Main.Mainlayer",
+    "startFrame": 0,
+    "endFrame": 5790,
+    "color": "#8b492f"
+  },
+  {
+    "type": "CreditLayer",
+    "displayName": "Credit.CreditLayer",
+    "startFrame": 5789,
+    "endFrame": 7105,
+    "color": "#1b592f"
+  },
+  {
+    "type": "MatrixLayer",
+    "displayName": "Credit.MatrixLayer",
+    "startFrame": 5747,
+    "endFrame": 7110,
+    "color": "#967117"
+  }
+]
