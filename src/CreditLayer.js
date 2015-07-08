@@ -40,12 +40,12 @@ function CreditLayer(layer) {
 
     var rand = pseudorand();
     rand.setSeed();
-    for(i=0;i<170;i++) {
+    for(i=0;i<1000;i++) {
         var sphere = new THREE.Mesh(new THREE.SphereGeometry(0.5, 5, 5), new THREE.MeshNormalMaterial());
         sphere.position.set(
-                rand.rand()*50-25,
-                rand.rand()*50-25,
-                rand.rand()*50-25
+                rand.rand()*120-5,
+                rand.rand()*100-5,
+                rand.rand()*120-5
                 );
         sphere.overdraw = true;
         this.scene.add(sphere);
@@ -54,9 +54,9 @@ function CreditLayer(layer) {
 }
 
 CreditLayer.prototype.initNinjadev = function() {
-    this.ninjadev;
+    this.shoutouts;
     var that = this;
-    var ninjadevMaterial = new THREE.MeshNormalMaterial({
+    var shoutoutsMaterial = new THREE.MeshNormalMaterial({
         color: 0x105107,
         side: THREE.DoubleSide
     });
@@ -67,13 +67,14 @@ CreditLayer.prototype.initNinjadev = function() {
 
     var addObjects = function() {
 
-        Math.seedrandom('solskogen');
-        var ninjadev = group.clone();
-        ninjadev.position.x = 0;
-        ninjadev.position.y = 0;
-        ninjadev.position.z = 1;
-        ninjadev.rotation.y = 0;
-        that.ninjadev = ninjadev;
+        var shoutouts = group.clone();
+        shoutouts.position.x = 0;
+        shoutouts.position.y = 0;
+        shoutouts.position.z = 1;
+        shoutouts.rotation.y = 0;
+        shoutouts.scale.set(6,6,6);
+        that.shoutouts = shoutouts;
+        that.scene.add(shoutouts);
     };
 
     var loadObject = function (objPath, material) {
@@ -89,28 +90,60 @@ CreditLayer.prototype.initNinjadev = function() {
             loadedCounter++;
             if (loadedCounter >= numComponents) {
                 addObjects();
-                console.log("ninjadev loaded");
             }
         });
-        console.log(Loader);
         Loader.start(function(){}, function(text) {console.log(text);});
     };
-
-    console.log("loading ninjadev");
     var prefix = 'res/objects/';
-    loadObject(prefix + 'ninjadev.obj', ninjadevMaterial);
+    loadObject(prefix + 'shoutouts.obj', shoutoutsMaterial);
 };
 
 CreditLayer.prototype.update = function(frame, relativeFrame) {
     // CAMERA MOVEMENT
-    if(relativeFrame>0 && relativeFrame < 2000) {
-        var timer = (relativeFrame-500)/(2000-500);
-        this.camera.position.x = 6 + (1-Math.cos(timer*Math.PI*2))/2 * 8;
-        this.camera.position.y = 4 + (1-Math.cos(timer*Math.PI*2))/2 * 16;
-        this.camera.position.z = 40 - (1-Math.cos(timer*Math.PI))/2 * 60;
-        this.camera.lookAt(new THREE.Vector3(0,0,0));
+    var shout1 = 161;
+    var shout2 = 371;
+    var shout3 = 581;
+    var shout4 = 791;
+    var shout5 = 1001;
+    var shout6 = 1211;
+    var current_x = lerp(10,50,relativeFrame/shout4) + lerp(0,50,(relativeFrame-(shout5-120))/(shout6-shout5)) + lerp(0,1115,(relativeFrame-(shout5+60))/(shout6-shout5));
+    this.camera.position.x = current_x;
+    this.camera.position.y = 30 + lerp(-10,0,relativeFrame/100);
+    this.camera.position.z = lerp(0,75,relativeFrame/shout5) + lerp(0,20,(relativeFrame-shout4)/(shout6-shout4));
+    if(relativeFrame>0 && relativeFrame < shout1) {
+        //smoothstep(start, stop, progress);
+        this.camera.lookAt(new THREE.Vector3(
+                    current_x/1.3,
+                    0,
+                    smoothstep(-15,0,(relativeFrame-0)/(shout1-0))
+        ));
+    } else if(relativeFrame < shout2) {
+        this.camera.lookAt(new THREE.Vector3(
+                    current_x/1.3,
+                    0,
+                    smoothstep(0,15,(relativeFrame-shout1)/(shout3-shout2))
+        ));
+    } else if(relativeFrame < shout3) {
+        this.camera.lookAt(new THREE.Vector3(
+                    current_x/1.3,
+                    0,
+                    smoothstep(15,30,(relativeFrame-shout2)/(shout4-shout3))
+        ));
+    } else if(relativeFrame < shout4) {
+        this.camera.lookAt(new THREE.Vector3(
+                    current_x/1.3,
+                    0,
+                    smoothstep(30,50,(relativeFrame-shout3)/(shout5-shout4))
+        ));
+    } else {
+        this.camera.lookAt(new THREE.Vector3(
+                    current_x/1.3 + smoothstep(0,11,(relativeFrame-shout4)/(shout6-shout5)),
+                    0,
+                    smoothstep(50,80,(relativeFrame-shout4)/(shout6-shout5))
+        ));
+        this.camera.position.y = smoothstep(30,60,(relativeFrame-shout4)/(shout6-shout5))
     }
-};
+}
 
 CreditLayer.prototype.getEffectComposerPass = function() {
     return this.renderPass;
