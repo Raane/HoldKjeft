@@ -60,10 +60,15 @@ CreditLayer.prototype.initNinjadev = function() {
         color: 0x105107,
         side: THREE.DoubleSide
     });
+    var holdkjeftMaterial= new THREE.MeshNormalMaterial({
+        color: 0xff3322,
+        side: THREE.DoubleSide
+    });
 
     var numComponents = 1;
     var loadedCounter = 0;
     var group = new THREE.Object3D();
+    var group2 = new THREE.Object3D();
 
     var addObjects = function() {
 
@@ -92,10 +97,41 @@ CreditLayer.prototype.initNinjadev = function() {
                 addObjects();
             }
         });
-        Loader.start(function(){}, function(text) {console.log(text);});
+    };
+    var addObjects2 = function() {
+
+        var shoutouts = group2.clone();
+        shoutouts.position.x = 300;
+        shoutouts.position.y = 58;
+        shoutouts.position.z = 96;
+        shoutouts.rotation.x = Math.PI/2;
+        shoutouts.rotation.y = 0;
+        shoutouts.rotation.z = -Math.PI/2;
+        shoutouts.scale.set(6,6,6);
+        that.shoutouts = shoutouts;
+        that.scene.add(shoutouts);
+    };
+
+    var loadObject2 = function (objPath, material) {
+        var objLoader = new THREE.OBJLoader();
+        Loader.loadAjax(objPath, function(text) {
+            var object = objLoader.parse(text);
+            object.traverse(function(child) {
+                if (child instanceof THREE.Mesh) {
+                    child.material = material;
+                }
+            });
+            group2.add(object);
+            loadedCounter++;
+            if (loadedCounter >= numComponents) {
+                addObjects2(object);
+            }
+        });
     };
     var prefix = 'res/objects/';
     loadObject(prefix + 'shoutouts.obj', shoutoutsMaterial);
+    loadObject2(prefix + 'holdkjeft.obj', holdkjeftMaterial);
+    Loader.start(function(){}, function(text) {console.log(text);});
 };
 
 CreditLayer.prototype.update = function(frame, relativeFrame) {
@@ -142,6 +178,10 @@ CreditLayer.prototype.update = function(frame, relativeFrame) {
                     smoothstep(50,80,(relativeFrame-shout4)/(shout6-shout5))
         ));
         this.camera.position.y = smoothstep(30,60,(relativeFrame-shout4)/(shout6-shout5))
+    }
+
+    if(relativeFrame > 1103) {
+        this.camera.position.set(323, 60, 90);
     }
 }
 
