@@ -112,7 +112,7 @@ IntroLayer.prototype.update = function(frame, relativeFrame) {
     this.bars[6].position.x = smoothstep(3,4.5,(relativeFrame-877)/100);
 
 
-    this.camera.position.y = smoothstep(0,-24,(relativeFrame-1153)/12);
+    this.camera.position.y = smoothstep(0,-24,(relativeFrame-1153)/12) + smoothstep(0,-35,(relativeFrame-1290)/12) ;
 }
 
 IntroLayer.prototype.getEffectComposerPass = function() {
