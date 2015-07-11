@@ -31,7 +31,7 @@ function IntroLayer(layer) {
 
 IntroLayer.prototype.add_torus = function() {
     var geometry = new THREE.TorusGeometry( 10, 2, 6, 30 );
-    var material = new THREE.MeshBasicMaterial( { color: 0xFFFF66 } );
+    var material = new THREE.MeshBasicMaterial( { color: 0x52403E } );
     var torus = new THREE.Mesh( geometry, material );
     this.scene.add( torus );
     this.toruses.push(torus);
@@ -39,7 +39,7 @@ IntroLayer.prototype.add_torus = function() {
 
 IntroLayer.prototype.add_run_bar = function(x,y,dx,dy) {
     var geometry = new THREE.BoxGeometry( x, y, 1 );
-    var material = new THREE.MeshBasicMaterial( { color: 0x009933 } );
+    var material = new THREE.MeshBasicMaterial( { color: 0x931D19 } );
     var torus = new THREE.Mesh( geometry, material );
     torus.position.set(dx,dy,0);
     this.scene.add( torus );
@@ -50,7 +50,7 @@ IntroLayer.prototype.initHoldKjeft = function() {
     this.shoutouts;
     var that = this;
     var holdkjeftMaterial= new THREE.MeshLambertMaterial({
-        color: 0x009933,
+        color: 0x931D19,
         side: THREE.DoubleSide
     });
 

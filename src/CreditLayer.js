@@ -1,5 +1,6 @@
 /*
  * @constructor
+ * Shoutout T-101 and Mercury?
  */
 
 function pseudorand() {
