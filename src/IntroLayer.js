@@ -71,7 +71,7 @@ IntroLayer.prototype.initHoldKjeft = function() {
         that.shoutouts = shoutouts;
         that.scene.add(shoutouts);
 
-        var light1 = new THREE.PointLight(0x992222, 20.0, 100);
+        var light1 = new THREE.PointLight(0x931D19, 20.0, 100);
         light1.position.set(20,-24,40);
         that.scene.add(light1);
     };

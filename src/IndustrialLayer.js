@@ -23,6 +23,7 @@ function IndustrialLayer(layer) {
     
     this.initLights();
     this.initNinjadev();
+    this.initSmokeColumns();
 }
 
 IndustrialLayer.prototype.initLights= function() {
@@ -126,6 +127,85 @@ IndustrialLayer.prototype.initNinjadev = function() {
     Loader.start(function(){}, function(text) {console.log(text);});
 };
 
+IndustrialLayer.prototype.initSmokeColumns = function() {
+    this.smokeColumns = new Array();
+    this.smokeBirthTimes = new Array();
+    /*new THREE.MeshBasicMaterial({
+     *       map: Loader.loadTexture(imagePrefix + directions[i] + imageSuffix),
+     *             side: THREE.BackSide,
+     *                   transparent: true
+     *                       }));*/
+    this.particleTexture = Loader.loadTexture( 'res/smokeparticle.png' );
+    if(!window.FILES) {
+        Loader.start( function(){}, function(){});
+    }
+    this.spriteMaterial = new THREE.SpriteMaterial({
+        map: this.particleTexture,
+        useScreenCoordinates: false,
+        color: 0xffffff,
+        sizeAttenuation: true
+    });
+};
+
+IndustrialLayer.prototype.addSmokeColumn = function(x,y,z,frame,imgScale,radiusRange,totalParticles) {
+
+    this.smokeColumns.push( new THREE.Object3D() );
+    var smokeColumn = this.smokeColumns[this.smokeColumns.length-1];
+
+    smokeColumn.particleAttributes = { startSize: [], startPosition: [], randomness: [] };
+
+    var totalParticles = 4;
+    var radiusRange = 90;
+    for(var i=0; i < totalParticles; i++) {
+        smokeColumn.add(new THREE.Sprite(this.spriteMaterial));
+        smokeColumn.children[i].scale.set(imgScale, imgScale, 1.0); // imageWidth, imageHeight
+        smokeColumn.children[i].position.set(
+                Math.random() - 0.5,
+                Math.random() - 0.5,
+                Math.random() - 0.5
+                );
+        smokeColumn.children[i].position.setLength(
+                radiusRange * (Math.random() * 0.1 + 0.9)
+                );
+        smokeColumn.children[i].material.color.setHSL(120, 0, 1); 
+        smokeColumn.children[i].material.blending = THREE.AlphaBlending; // "glowing" particles
+        smokeColumn.particleAttributes.startPosition.push(smokeColumn.children[i].position.clone());
+        smokeColumn.particleAttributes.randomness.push(Math.random());
+    }
+
+    smokeColumn.position.set(x,y,z);
+    this.scene.add(smokeColumn);
+    this.smokeBirthTimes.push(frame);
+};
+
+IndustrialLayer.prototype.updateSmoke = function(frame) {
+    for(var i=0;i<this.smokeColumns.length; i++) {
+        if(frame-this.smokeBirthTimes[i]>340 || frame-this.smokeBirthTimes[i]<-1) {
+            this.scene.remove(this.smokeColumns[i]);
+            delete this.smokeColumns[i];
+            this.smokeColumns.splice(i,1);
+            this.smokeBirthTimes.splice(i,1);
+        }
+    }
+    for(var i=0;i<this.smokeColumns.length; i++) {
+        this.updateSmokeColumn(this.smokeColumns[i], i, frame);
+    }
+};
+IndustrialLayer.prototype.updateSmokeColumn = function(updateParticleGroup, age, frame){
+
+    for (var c=0; c < updateParticleGroup.children.length; c++) {
+        var particle = updateParticleGroup.children[c];
+        var attributes = updateParticleGroup.particleAttributes;
+        var a = attributes.randomness[c] + 1;
+        var pulseFactor = Math.sin(a * 0.01 * frame * 1000 / 60) * 0.1 + 0.9;
+        pulseFactor/=100;
+        var downscaling = 1 -  (frame - this.smokeBirthTimes[age] + 1) / 200;
+        particle.position.x = attributes.startPosition[c].x * pulseFactor * downscaling;
+        particle.position.y = attributes.startPosition[c].y * pulseFactor + (frame - this.smokeBirthTimes[age])/50;
+        particle.position.z = attributes.startPosition[c].z * pulseFactor * downscaling;
+    }
+}
+
 IndustrialLayer.prototype.update = function(frame, relativeFrame) {
 
     this.cameraController.updateCamera(relativeFrame);
@@ -138,53 +218,159 @@ IndustrialLayer.prototype.update = function(frame, relativeFrame) {
     var shout6 = 1211;
 
     var intensity = 20*(0.5+0.5*Math.cos(relativeFrame*Math.PI/25.7/4));
+    if(relativeFrame>2070) {
+        intensity = 100*(0.5+0.5*Math.cos(relativeFrame*Math.PI/25.7));
+    }
     this.light1.intensity = intensity;
     this.light2.intensity = intensity;
     this.light3.intensity = intensity;
     this.light4.intensity = intensity;
-/*
-    var current_x = lerp(10,50,relativeFrame/shout4) + lerp(0,50,(relativeFrame-(shout5-120))/(shout6-shout5)) + lerp(0,1115,(relativeFrame-(shout5+60))/(shout6-shout5));
-    this.camera.position.x = current_x;
-    this.camera.position.y = 30 + lerp(-10,0,relativeFrame/100);
-    this.camera.position.z = lerp(0,75,relativeFrame/shout5) + lerp(0,20,(relativeFrame-shout4)/(shout6-shout4));
-    if(relativeFrame>0 && relativeFrame < shout1) {
-        //smoothstep(start, stop, progress);
-        this.camera.lookAt(new THREE.Vector3(
-                    current_x/1.3,
-                    0,
-                    smoothstep(-15,0,(relativeFrame-0)/(shout1-0))
-        ));
-    } else if(relativeFrame < shout2) {
-        this.camera.lookAt(new THREE.Vector3(
-                    current_x/1.3,
-                    0,
-                    smoothstep(0,15,(relativeFrame-shout1)/(shout3-shout2))
-        ));
-    } else if(relativeFrame < shout3) {
-        this.camera.lookAt(new THREE.Vector3(
-                    current_x/1.3,
-                    0,
-                    smoothstep(15,30,(relativeFrame-shout2)/(shout4-shout3))
-        ));
-    } else if(relativeFrame < shout4) {
-        this.camera.lookAt(new THREE.Vector3(
-                    current_x/1.3,
-                    0,
-                    smoothstep(30,50,(relativeFrame-shout3)/(shout5-shout4))
-        ));
-    } else {
-        this.camera.lookAt(new THREE.Vector3(
-                    current_x/1.3 + smoothstep(0,11,(relativeFrame-shout4)/(shout6-shout5)),
-                    0,
-                    smoothstep(50,80,(relativeFrame-shout4)/(shout6-shout5))
-        ));
-        this.camera.position.y = smoothstep(30,60,(relativeFrame-shout4)/(shout6-shout5))
-    }
 
-    if(relativeFrame > 1103) {
-        this.camera.position.set(323, 60, 90);
+    this.updateSmoke(frame, relativeFrame);
+    if(relativeFrame > 2077 && relativeFrame < 4585 && relativeFrame%25==0) {
+        this.addSmokeColumn( 
+                2.97,-6.42,2.04,
+                frame,
+                16,
+                10,
+                1
+                );
+        this.addSmokeColumn( 
+                -8.3,-3.65,5.05,
+                frame,
+                16,
+                10,
+                1
+                );
+        this.addSmokeColumn( 
+                -21.89,28.13,-92.29,
+                frame,
+                16,
+                10,
+                1
+                );
+        this.addSmokeColumn( 
+                -48.85,17.82,-89.71,
+                frame,
+                16,
+                10,
+                1
+                );
+        this.addSmokeColumn( 
+                -92.68,32.89,-79.12,
+                frame,
+                16,
+                10,
+                1
+                );
+        this.addSmokeColumn( 
+                37.62,56.25,-20.83,
+                frame,
+                16,
+                10,
+                1
+                );
+        this.addSmokeColumn( 
+                94.78,53.26,-18.1,
+                frame,
+                16,
+                10,
+                1
+                );
+        this.addSmokeColumn( 
+                37.08,25.97,-3.12,
+                frame,
+                16,
+                10,
+                1
+                );
+        this.addSmokeColumn( 
+                -35.52,-1.47,-4.57,
+                frame,
+                16,
+                10,
+                1
+                );
+        this.addSmokeColumn( 
+                -37.86,-1.89,7.58,
+                frame,
+                16,
+                10,
+                1
+                );
+        this.addSmokeColumn( 
+                5.25,-7.69,79.62,
+                frame,
+                16,
+                10,
+                1
+                );
+        this.addSmokeColumn( 
+                34.76,9.77,80.71,
+                frame,
+                16,
+                10,
+                1
+                );
+        this.addSmokeColumn( 
+                65.29,7.5,82.23,
+                frame,
+                16,
+                10,
+                1
+                );
+        this.addSmokeColumn( 
+                0.89,-7.28,-76.53,
+                frame,
+                16,
+                10,
+                1
+                );
+        this.addSmokeColumn( 
+                11.79,4.66,-78.08,
+                frame,
+                16,
+                10,
+                1
+                );
+        this.addSmokeColumn( 
+                -92.62,28.02,-37.56,
+                frame,
+                16,
+                10,
+                1
+                );
+        this.addSmokeColumn( 
+                -89.98,31.63,70.55,
+                frame,
+                16,
+                10,
+                1
+                );
+        this.addSmokeColumn( 
+                50.43,47.47,78.71,
+                frame,
+                16,
+                10,
+                1
+                );
+        this.addSmokeColumn( 
+                50.78,48.45,79.26,
+                frame,
+                16,
+                10,
+                1
+                );
     }
-    */
+    if(relativeFrame > 3718 && relativeFrame < 4200  && relativeFrame%25==0) {
+        this.addSmokeColumn( 
+                50.78,48.45,79.26,
+                frame,
+                256,
+                4000,
+                1
+                );
+    }
 }
 
 IndustrialLayer.prototype.getEffectComposerPass = function() {

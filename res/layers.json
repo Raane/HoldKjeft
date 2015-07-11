@@ -14,6 +14,20 @@
     "color": "#8b492f"
   },
   {
+    "type": "NoiseFXLayer",
+    "displayName": "Noise fx",
+    "startFrame": 1311,
+    "endFrame": 5747,
+    "color": "#521b9f"
+  },
+  {
+    "type": "CubicLensDistortionLayer",
+    "displayName": "Lens distortion",
+    "startFrame": 1311,
+    "endFrame": 5747,
+    "color": "#4dba98"
+  },
+  {
     "type": "CreditLayer",
     "displayName": "Credits",
     "startFrame": 5789,
